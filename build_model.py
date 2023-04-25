@@ -49,11 +49,12 @@ def init_rai(layer: torch.nn.Module) -> None:
     fan_in, fan_out = torch.nn.init._calculate_fan_in_and_fan_out(layer.weight)
 
     V = torch.randn(fan_out, fan_in + 1) * 0.6007 / fan_in**0.5
+    
     for i in range(fan_out):
         j = torch.randint(low=0, high=fan_in + 1, size=(1,))
         V[i, j] = beta_distribution.sample()
 
-    layer.weight = torch.nn.Parameter(torch.transpose(V[:, :-1], 0, 1))
+    layer.weight = torch.nn.Parameter(V[:, :-1])
     layer.bias = torch.nn.Parameter(V[:, -1])
 
 
