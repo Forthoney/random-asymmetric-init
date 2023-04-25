@@ -1,10 +1,11 @@
 import torch
-from typing import Callable
+from typing import Callable, Union
+
 
 class LinearWithReLU(torch.nn.Module):
     """Linear layer followed by vanilla ReLU
 
-    Attributes: 
+    Attributes:
         linear: Linear layer
         relu: ReLU activation
     """
@@ -43,8 +44,8 @@ def init_rai(layer: torch.nn.Module) -> None:
         return
 
     beta_distribution = torch.distributions.Beta(
-            torch.tensor([2.0]), torch.tensor([1.0])
-            )
+        torch.tensor([2.0]), torch.tensor([1.0])
+    )
     fan_in, fan_out = torch.nn.init._calculate_fan_in_and_fan_out(layer.weight)
 
     V = torch.randn(fan_out, fan_in + 1) * 0.6007 / fan_in**0.5
@@ -56,16 +57,21 @@ def init_rai(layer: torch.nn.Module) -> None:
     layer.bias = torch.nn.Parameter(V[:, -1])
 
 
-def make_1d_model(initializer: Callable, depth: int = 10, **kwargs) -> torch.nn.Module:
+def make_1d_model(
+    initializer: Union[Callable, None], depth: int = 10, **kwargs
+) -> torch.nn.Module:
+    
     layers = torch.nn.ModuleList(
-            [
-                LinearWithReLU(1, 2),
-                *[LinearWithReLU(2, 2) for _ in range(depth - 2)],
-                LinearWithReLU(2, 1),
-                ]
-            )
+        [
+            LinearWithReLU(1, 2),
+            *[LinearWithReLU(2, 2) for _ in range(depth - 2)],
+            LinearWithReLU(2, 1),
+        ]
+    )
 
     model = torch.nn.Sequential(*layers)
-    model.apply(lambda layer: initializer(layer, **kwargs))
 
-    return model
+    if initializer != None:
+        model.apply(lambda layer: initializer(layer, **kwargs))
+
+    return model.float()
