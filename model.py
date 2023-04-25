@@ -69,4 +69,3 @@ def make_1d_model(initializer: Callable, depth: int = 10, **kwargs) -> torch.nn.
     model.apply(lambda layer: initializer(layer, **kwargs))
 
     return model
-
