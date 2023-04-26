@@ -15,7 +15,7 @@ def f3(x):
     ret = []
     for i in x:
         if i > 0:
-            ret.append(i + 0.2 * np.sin(5*i))
+            ret.append(1 + 0.2 * np.sin(5*i))
         else:
             ret.append(0.2 * np.sin(5*i))
     return np.array(ret)
