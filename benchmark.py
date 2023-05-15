@@ -10,7 +10,7 @@ def train(model, true_fn, n_epochs, optimizer):
     criterion = torch.nn.MSELoss()
     x, y = sample.sample_1d(true_fn)
     x = np.expand_dims(x, 1)
-    y = np.expand_dims(y, 1)    
+    y = np.expand_dims(y, 1)
 
     tensor_x = torch.tensor(x, dtype=torch.float)
     tensor_y = torch.tensor(y, dtype=torch.float)
@@ -35,9 +35,10 @@ def check_dead(model, x_range, resolution):
     return torch.allclose(pred, pred[0])
 
 
-def he_stats(true_fn, x_range, repetitions):
+def he_stats(true_fn, x_range, repetitions, seed):
     he_results = []
-    for _ in range(repetitions):
+    for i in range(repetitions):
+        torch.manual_seed(seed - i)
         model_he = build_model.make_1d_model(build_model.init_he_normal)
         optimizer_he = torch.optim.Adam(model_he.parameters(), lr=0.001)
         model_he = train(model_he, true_fn, 100, optimizer_he)
@@ -45,18 +46,29 @@ def he_stats(true_fn, x_range, repetitions):
     return sum(he_results) / len(he_results)
 
 
-def rai_stats(true_fn, x_range, repetitions):
+def rai_stats(true_fn, x_range, repetitions, seed):
     rai_results = []
-    for _ in range(repetitions):
+    for i in range(repetitions):
+        torch.manual_seed(seed - i)
         model_rai = build_model.make_1d_model(build_model.init_rai)
         optimizer_rai = torch.optim.Adam(model_rai.parameters(), lr=0.001)
         model_rai = train(model_rai, true_fn, 100, optimizer_rai)
         rai_results.append(check_dead(model_rai, x_range, 10))
     return sum(rai_results) / len(rai_results)
 
+
+rng = np.random.default_rng(seed=0)
+
 test_fns = [sample.f1, sample.f2, sample.f3]
 x_range = (-np.sqrt(3), np.sqrt(3))
 results = []
 for func in test_fns:
-    results.append((he_stats(func, x_range, 100), rai_stats(func, x_range, 100)))
-print(results)
+    results.append(
+        (
+            he_stats(func, x_range, 100, rng.integers(2**32)),
+            rai_stats(func, x_range, 100, rng.integers(2**32)),
+        )
+    )
+
+with open('./output/results.txt', 'w') as file:
+    file.write(str(results))
