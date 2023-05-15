@@ -1,5 +1,6 @@
+from typing import Callable, Optional
+
 import torch
-from typing import Callable, Union
 
 
 class LinearWithReLU(torch.nn.Module):
@@ -49,7 +50,7 @@ def init_rai(layer: torch.nn.Module) -> None:
     fan_in, fan_out = torch.nn.init._calculate_fan_in_and_fan_out(layer.weight)
 
     V = torch.randn(fan_out, fan_in + 1) * 0.6007 / fan_in**0.5
-    
+
     for i in range(fan_out):
         j = torch.randint(low=0, high=fan_in + 1, size=(1,))
         V[i, j] = beta_distribution.sample()
@@ -59,18 +60,32 @@ def init_rai(layer: torch.nn.Module) -> None:
 
 
 def make_1d_model(
-    initializer: Union[Callable, None], depth: int = 10, **kwargs
+    initializer: Optional[Callable], depth: int = 10, **kwargs
 ) -> torch.nn.Module:
-    
-    layers = torch.nn.ModuleList(
-        [
-            LinearWithReLU(1, 2),
-            *[LinearWithReLU(2, 2) for _ in range(depth - 2)],
-            LinearWithReLU(2, 1),
-        ]
+    model = torch.nn.Sequential(
+        LinearWithReLU(1, 2),
+        *[LinearWithReLU(2, 2) for _ in range(depth - 2)],
+        LinearWithReLU(2, 1),
     )
 
-    model = torch.nn.Sequential(*layers)
+    if initializer != None:
+        model.apply(lambda layer: initializer(layer, **kwargs))
+
+    return model.float()
+
+
+def make_mnist_model(
+    initializer: Optional[Callable],
+    depth: int = 5,
+    hidden_size: int = 200,
+    layer=LinearWithReLU,
+    **kwargs
+) -> torch.nn.Module:
+    model = torch.nn.Sequential(
+        layer(28**2, hidden_size),
+        *[layer(hidden_size, hidden_size) for _ in range(depth - 2)],
+        layer(hidden_size, 10),
+    )
 
     if initializer != None:
         model.apply(lambda layer: initializer(layer, **kwargs))

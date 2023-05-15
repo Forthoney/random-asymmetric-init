@@ -1,6 +1,7 @@
-import torch
 import numpy as np
-from torch.utils.data import TensorDataset, DataLoader
+import torch
+from torch.utils.data import DataLoader, TensorDataset
+from torchvision import datasets, transforms
 
 import build_model
 import sample
@@ -70,5 +71,5 @@ for func in test_fns:
         )
     )
 
-with open('./output/results.txt', 'w') as file:
+with open("./output/results.txt", "w") as file:
     file.write(str(results))
