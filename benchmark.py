@@ -54,7 +54,6 @@ def rai_stats(true_fn, x_range, repetitions):
         rai_results.append(check_dead(model_rai, x_range, 10))
     return sum(rai_results) / len(rai_results)
 
-torch.manual_seed(0)
 test_fns = [sample.f1, sample.f2, sample.f3]
 x_range = (-np.sqrt(3), np.sqrt(3))
 results = []
