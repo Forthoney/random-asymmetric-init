@@ -28,15 +28,15 @@ def f4(x1, x2):
 def sample_1d(f):
     st = -np.sqrt(3)
     ed = np.sqrt(3)
-    x = np.random.uniform(st, ed, size=300)
+    x = np.random.uniform(st, ed, size=3000)
     y = f(x)
     return x, y
 
 def sample_2d(f):
     st = -np.sqrt(3)
     ed = np.sqrt(3)
-    x1 = np.random.uniform(st, ed, size=300)
-    x2 = np.random.uniform(st, ed, size=300)
+    x1 = np.random.uniform(st, ed, size=3000)
+    x2 = np.random.uniform(st, ed, size=3000)
     y = f(x1, x2)
     return (x1, x2), y
 
