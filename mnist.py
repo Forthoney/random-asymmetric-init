@@ -53,14 +53,14 @@ class NetSwish(nn.Module):
 
     def forward(self, x):
         x = self.conv1(x)
-        x = F.relu(x)
+        x = F.silu(x)
         x = self.conv2(x)
-        x = F.relu(x)
+        x = F.silu(x)
         x = F.max_pool2d(x, 2)
         x = self.dropout1(x)
         x = torch.flatten(x, 1)
         x = self.fc1(x)
-        x = F.relu(x)
+        x = F.silu(x)
         x = self.dropout2(x)
         x = self.fc2(x)
         output = F.log_softmax(x, dim=1)
@@ -198,8 +198,12 @@ def main():
     parser.add_argument(
         "--init_rai",
         "-i",
-        default=True,
+        action="store_true",
         help="Whether to use RAI for initialization. If false, will use He Normal",
+    )
+
+    parser.add_argument(
+        '--tensorboard',
     )
 
     args = parser.parse_args()
@@ -230,12 +234,14 @@ def main():
     train_loader = torch.utils.data.DataLoader(dataset1, **train_kwargs)
     test_loader = torch.utils.data.DataLoader(dataset2, **test_kwargs)
 
-    writer = SummaryWriter()
+    writer = SummaryWriter(args.tensorboard)
 
     model = NetReLU()
     if args.init_rai:
+        print("Using RAI")
         model.apply(init_rai)
     else:
+        print("Using He Normal")
         model.apply(init_he_normal)
     model = model.to(device)
 
