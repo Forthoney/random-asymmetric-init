@@ -7,9 +7,9 @@ import build_model
 import sample
 
 
-def train(model, true_fn, n_epochs, optimizer, device):
+def train(model, true_fn, n_epochs, optimizer, device, sampler=sample.sample_1d):
     criterion = torch.nn.MSELoss()
-    x, y = sample.sample_1d(true_fn)
+    x, y = sampler(true_fn)
     x = np.expand_dims(x, 1)
     y = np.expand_dims(y, 1)
 
@@ -48,22 +48,26 @@ def calc_stats(true_fn, x_range, repetitions, epochs, seed, init, device):
     return sum(rai_results) / len(rai_results)
 
 
+
+
+def benchmark_1d(rng, device):
+    test_fns = [sample.f1, sample.f2, sample.f3]
+    x_range = (-np.sqrt(3), np.sqrt(3))
+    results = []
+    for func in test_fns:
+        seed = rng.integers(2**32)
+        results.append(
+            (
+                calc_stats(func, x_range, 100, 10, seed, build_model.init_he_normal, device),
+                calc_stats(func, x_range, 100, 10, seed, build_model.init_rai, device),
+            )
+        )
+        print('Finished')
+
 rng = np.random.default_rng(seed=0)
 use_cuda = torch.cuda.is_available()
 device = torch.device("cuda" if use_cuda else "cpu")
 
-test_fns = [sample.f1, sample.f2, sample.f3]
-x_range = (-np.sqrt(3), np.sqrt(3))
-results = []
-for func in test_fns:
-    seed = rng.integers(2**32)
-    results.append(
-        (
-            calc_stats(func, x_range, 100, 10, seed, build_model.init_he_normal, device),
-            calc_stats(func, x_range, 100, 10, seed, build_model.init_rai, device),
-        )
-    )
-    print('Finished')
-
+results = benchmark_1d(rng, device)
 with open("./output/results.txt", "w") as file:
     file.write(str(results))
