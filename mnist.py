@@ -199,7 +199,12 @@ def main():
         "--init_rai",
         "-i",
         action="store_true",
-        help="Whether to use RAI for initialization. If false, will use He Normal",
+        help="Whether to use RAI for initialization. Will use He Normal if flag is not set",
+    )
+
+    parser.add_argument(
+        "--swish",
+        action='store_true'
     )
 
     parser.add_argument(
@@ -236,7 +241,7 @@ def main():
 
     writer = SummaryWriter(args.tensorboard)
 
-    model = NetReLU()
+    model = NetReLU() if args.swish else NetSwish()
     if args.init_rai:
         print("Using RAI")
         model.apply(init_rai)
